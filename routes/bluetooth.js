@@ -3,8 +3,8 @@ const router = express.Router();
 const noble = require('noble');
 const bleno = require('bleno');
 const { exec } = require('child_process');
-const { promisify } = require('util');
-const execAsync = promisify(exec);
+const util = require('util');
+const execAsync = util.promisify(exec);
 const fs = require('fs-extra');
 const path = require('path');
 
@@ -60,7 +60,7 @@ noble.on('discover', (peripheral) => {
   const device = {
     id: peripheral.id,
     mac: peripheral.address ? peripheral.address.replace(/-/g, ':').toLowerCase() : 'Unknown',
-    name: peripheral.advertisement.localName || 'Unknown Device',
+    name: peripheral.advertisement && peripheral.advertisement.localName || 'Unknown Device',
     rssi: peripheral.rssi,
     connectable: true,
     lastSeen: Date.now()
@@ -408,7 +408,7 @@ router.post('/toggle', async (req, res) => {
       }
       
       // Disconnect all devices
-      for (const [id, device] of connectedDevices) {
+      for (const [id, device] of connectedDevices.entries()) {
         try {
           device.peripheral.disconnect();
         } catch (e) {
