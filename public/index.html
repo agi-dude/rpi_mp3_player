@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Raspberry Pi MP3 Player</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/keyboard.css">
+    <link rel="stylesheet" href="/css/visualizer.css">
+</head>
+<body>
+<div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+        <h1>MP3 Player</h1>
+        <div class="header-controls">
+            <button id="bluetoothBtn" class="icon-btn" title="Bluetooth">
+                <i class="fas fa-bluetooth-b"></i>
+            </button>
+            <button id="settingsBtn" class="icon-btn" title="Settings">
+                <i class="fas fa-cog"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main content area -->
+    <main class="app-content">
+        <!-- Now Playing View -->
+        <section id="nowPlayingView" class="view active-view">
+            <div class="now-playing-info">
+                <div class="album-art">
+                    <div id="visualizer" class="visualizer-container">
+                        <!-- Visualizer will be rendered here -->
+                    </div>
+                </div>
+                <div class="track-info">
+                    <h2 id="trackTitle" class="track-title">No track playing</h2>
+                    <p id="trackArtist" class="track-artist">—</p>
+                    <p id="trackAlbum" class="track-album">—</p>
+                </div>
+            </div>
+
+            <div class="playback-controls">
+                <div class="seek-container">
+                    <span id="currentTime" class="time-display">0:00</span>
+                    <input type="range" id="seekBar" class="seek-bar" min="0" max="100" value="0">
+                    <span id="totalTime" class="time-display">0:00</span>
+                </div>
+                <div class="control-buttons">
+                    <button id="shuffleBtn" class="icon-btn" title="Shuffle">
+                        <i class="fas fa-random"></i>
+                    </button>
+                    <button id="prevBtn" class="icon-btn large" title="Previous">
+                        <i class="fas fa-step-backward"></i>
+                    </button>
+                    <button id="rewind10Btn" class="icon-btn" title="Rewind 10 seconds">
+                        <i class="fas fa-undo"></i><span>10</span>
+                    </button>
+                    <button id="playPauseBtn" class="icon-btn extra-large" title="Play/Pause">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button id="forward10Btn" class="icon-btn" title="Forward 10 seconds">
+                        <i class="fas fa-redo"></i><span>10</span>
+                    </button>
+                    <button id="nextBtn" class="icon-btn large" title="Next">
+                        <i class="fas fa-step-forward"></i>
+                    </button>
+                    <button id="loopBtn" class="icon-btn" title="Loop">
+                        <i class="fas fa-redo-alt"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="volume-speed-controls">
+                <div class="volume-control">
+                    <i class="fas fa-volume-down"></i>
+                    <input type="range" id="volumeSlider" class="slider" min="0" max="100" value="80">
+                    <i class="fas fa-volume-up"></i>
+                </div>
+                <div class="speed-control">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <input type="range" id="speedSlider" class="slider" min="50" max="150" value="100">
+                    <span id="speedValue">1.0x</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Browse View -->
+        <section id="browseView" class="view">
+            <div class="browse-header">
+                <h2>Browse Files</h2>
+                <div class="browse-controls">
+                    <button id="browseBackBtn" class="icon-btn" title="Back">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <button id="refreshBtn" class="icon-btn" title="Refresh">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <button id="scanFolderBtn" class="icon-btn" title="Scan Folder">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="currentPath" class="current-path">/</div>
+            <div id="fileList" class="file-list">
+                <!-- Files and folders will be populated here -->
+            </div>
+        </section>
+
+        <!-- Playlists View -->
+        <section id="playlistsView" class="view">
+            <div class="playlists-header">
+                <h2>Playlists</h2>
+                <button id="createPlaylistBtn" class="btn">
+                    <i class="fas fa-plus"></i> New Playlist
+                </button>
+            </div>
+            <div id="playlistsList" class="playlists-list">
+                <!-- Playlists will be populated here -->
+            </div>
+        </section>
+
+        <!-- Playlist Detail View -->
+        <section id="playlistDetailView" class="view">
+            <div class="playlist-detail-header">
+                <button id="backToPlaylistsBtn" class="icon-btn" title="Back to Playlists">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h2 id="playlistName">Playlist Name</h2>
+                <div class="playlist-actions">
+                    <button id="playPlaylistBtn" class="icon-btn" title="Play Playlist">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button id="shufflePlaylistBtn" class="icon-btn" title="Shuffle Playlist">
+                        <i class="fas fa-random"></i>
+                    </button>
+                    <button id="editPlaylistBtn" class="icon-btn" title="Edit Playlist">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="playlistTracks" class="playlist-tracks">
+                <!-- Playlist tracks will be populated here -->
+            </div>
+        </section>
+
+        <!-- Bluetooth View -->
+        <section id="bluetoothView" class="view">
+            <div class="bluetooth-header">
+                <h2>Bluetooth</h2>
+                <div class="bluetooth-toggle">
+                    <span>Enable Bluetooth</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="bluetoothToggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="bluetooth-content">
+                <div class="bluetooth-section">
+                    <h3>Connected Devices</h3>
+                    <div id="connectedDevices" class="device-list">
+                        <!-- Connected devices will be populated here -->
+                    </div>
+                </div>
+
+                <div class="bluetooth-section">
+                    <h3>Available Devices</h3>
+                    <button id="scanDevicesBtn" class="btn">
+                        <i class="fas fa-search"></i> Scan for Devices
+                    </button>
+                    <div id="availableDevices" class="device-list">
+                        <!-- Available devices will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings View -->
+        <section id="settingsView" class="view">
+            <div class="settings-header">
+                <h2>Settings</h2>
+            </div>
+            <div class="settings-list">
+                <div class="setting-item">
+                    <span>Theme</span>
+                    <select id="themeSelector">
+                        <option value="default">Default</option>
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <span>Visualization Type</span>
+                    <select id="visualizationType">
+                        <option value="bars">Bars</option>
+                        <option value="wave">Wave</option>
+                        <option value="circle">Circle</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Keyboard -->
+    <div id="virtualKeyboard" class="virtual-keyboard">
+        <div class="keyboard-container">
+            <div class="keyboard-input-wrapper">
+                <input type="text" id="keyboardInput" class="keyboard-input">
+                <button id="keyboardDoneBtn" class="keyboard-done-btn">Done</button>
+            </div>
+            <div class="keyboard-layout">
+                <!-- Keyboard keys will be generated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Modal Title</h3>
+                <button id="closeModalBtn" class="close-btn">&times;</button>
+            </div>
+            <div id="modalBody" class="modal-body">
+                <!-- Modal content will be populated here -->
+            </div>
+            <div id="modalFooter" class="modal-footer">
+                <!-- Modal buttons will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation bar -->
+    <nav class="app-nav">
+        <button id="navNowPlaying" class="nav-btn active" data-view="nowPlayingView">
+            <i class="fas fa-play-circle"></i>
+            <span>Now Playing</span>
+        </button>
+        <button id="navBrowse" class="nav-btn" data-view="browseView">
+            <i class="fas fa-folder"></i>
+            <span>Browse</span>
+        </button>
+        <button id="navPlaylists" class="nav-btn" data-view="playlistsView">
+            <i class="fas fa-list"></i>
+            <span>Playlists</span>
+        </button>
+    </nav>
+</div>
+
+<!-- Socket.io -->
+<script src="/socket.io/socket.io.js"></script>
+
+<!-- Scripts -->
+<script src="/js/player.js"></script>
+<script src="/js/fileBrowser.js"></script>
+<script src="/js/playlist.js"></script>
+<script src="/js/bluetooth.js"></script>
+<script src="/js/keyboard.js"></script>
+<script src="/js/visualizer.js"></script>
+</body>
+</html>
