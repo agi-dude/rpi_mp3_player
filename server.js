@@ -10,6 +10,9 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
+// Make io available globally for route files
+global.io = io;
+
 // Middleware
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -18,10 +21,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 const dataDir = path.join(__dirname, 'data');
 fs.ensureDirSync(dataDir);
 
+// Create music directory if it doesn't exist
+const musicDir = path.join(__dirname, 'music');
+fs.ensureDirSync(musicDir);
+
 // Initialize playlists.json if it doesn't exist
 const playlistsFile = path.join(dataDir, 'playlists.json');
 if (!fs.existsSync(playlistsFile)) {
-    fs.writeJsonSync(playlistsFile, { playlists: [] });
+  fs.writeJsonSync(playlistsFile, { playlists: [] });
 }
 
 // Routes
@@ -35,27 +42,22 @@ app.use('/api/bluetooth', bluetoothRouter);
 
 // Socket.io for real-time updates
 io.on('connection', (socket) => {
-    console.log('Client connected');
-
-    // Handle Bluetooth events
-    socket.on('bluetooth:scan', () => {
-        // Socket event handlers will be implemented in the bluetooth.js route
-        socket.emit('bluetooth:scanning');
-    });
-
-    socket.on('disconnect', () => {
-        console.log('Client disconnected');
-    });
+  console.log('Client connected');
+  
+  // Generic events handled here
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
 });
 
 // Serve the main HTML file for all other routes
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Start the server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Open http://localhost:${PORT} in your browser`);
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Open http://localhost:${PORT} in your browser`);
 });
